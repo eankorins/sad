@@ -1,0 +1,10 @@
+*.zip
+/x86
+/x64
+
+*.in
+*.out
+*.tsp
+*.dat
+*.pdf
+datafiles/
