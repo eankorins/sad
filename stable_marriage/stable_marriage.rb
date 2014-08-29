@@ -7,7 +7,8 @@ end
 def read_file(name)
   # Reads file
 	lines = open(name).readlines.select { |line| line[0] != "#" }
-	lines.slice!(lines.index("\n")).slice!(0)
+	lines.slice!(lines.index("\n"))
+  lines.slice!(0)
 	length = lines.count
 
   # Gets preference lists
