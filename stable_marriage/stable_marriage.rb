@@ -1,88 +1,111 @@
 require 'open-uri'
 require_relative 'person'
 
-def directory_files(dir)
-end
+$debug = false
 
 def read_file(name)
   # Reads file
-	lines = open(name).readlines.select { |line| line[0] != "#" }
-	lines.slice!(lines.index("\n"))
-  lines.slice!(0)
-	length = lines.count
-  puts 'Reading preferences'
-  # Gets preference lists
-  chunks = lines.last(length / 2).each_slice(100)
-	threads = []
-  preferences = []
-  chunks.each do |chunk|
-    t = Thread.new { preferences << chunk.map do |p|
-    p[3..p.length].split(' ').map(&:to_i)
-    end }
-    threads << t
-    puts threads.count
-    if threads.count == 20
-      threads.each { |thr| thr.join}
-      threads = []
-    end
-  end 
+	open(name).readlines.select { |line| line[0] != "#" }
+end
 
-  threads.each{|t|t.join}
-  threads = []
-  prefs = []
-  preferences.each do |pref|
-    pref.each do |item|
-      prefs << item
+def parse_data(file)
+
+  raw_file = read_file(file)
+  #Removes unwanted lines
+  raw_file.slice!(raw_file.index("\n"))
+  raw_file.slice!(0)
+  length = raw_file.count
+
+  #Returns array with person index and names
+  raw_people = raw_file.take(length / 2)
+
+  #preference list in 100 item chunks
+  raw_preferences = raw_file.last(length / 2).each_slice(100)
+
+	threads, preferences = [], []
+  # Gets preference lists
+  raw_preferences.each do |chunk|
+    t = Thread.new(chunk) do |chunk|
+      preferences << chunk.map do |p| 
+        index = p[0..p.index(':') - 1].to_i
+        preference_items = p[3..p.length].split(' ').map(&:to_i) - [0]
+        { :index => index, :prefs => preference_items }
+      end.flatten(1)
     end
-  end
-  puts "#{prefs}"
-  puts 'Creating people'
-  # Map people as Person objects
-  p_index = 0
-  people = lines.take(length / 2).each_with_index.map do |p, i|
-    number, name = p.tr("\n", "").split(' ')
-    person = Person.new(name, number.to_i, prefs[i])
-  end
-  people.each(&:display)
-  puts 'Remapping preferences'
-  # Remap every person's preference list to be an Person object reference
-  peoples = people.each_slice(100)
-  peoples.each do |people|
-    t = Thread.new { people.each do |person|
-      new_pref_list = person.preference_list.select{|pref| pref != 0 }.map{ |p| peoples.find{ |pref| pref.number == p}}
-      person.preference_list = new_pref_list end }
-      threads << t
-      if threads.count == 20
-        threads.each { |thr| thr.join}
-        threads = []
-      end
-  end
+    threads << t
+  end 
   threads.each{|t|t.join}
+
+  puts 'Creating people'
+
+  preferences = preferences.flatten(1)
+  #puts "#{preferences}"
+
+  #Creates people objects for every person
+  people = raw_people.each_with_index.map do |p, i|
+    number, name = p.tr("\n", "").split(' ')
+    preference_list = preferences.find{ |p| p[:index] == number.to_i}[:prefs]
+    person = Person.new(name, number.to_i, preference_list)
+  end
+  #people.each(&:display)
+  puts 'Remapping preferences'
+
+  # Remap every person's preference list to be an Person object reference
+  threads = []
+    people.each_slice(100).each do |chunk|
+      t = Thread.new {
+        chunk.each do |person|
+          new_pref_list = person.preference_list.map{ |p| people.find{ |pref| pref.number == p}}
+          person.preference_list = new_pref_list
+        end
+      }
+      threads << t
+    end
+  threads.each{|thr| thr.join}
+
+  #Returns the list of all people
+  people
 end
 
 def match_couples(men, women)
+  #Breaks up all people
   men.each(&:break_up)
   women.each(&:break_up)
+
+  #While there are single men (finds first single)
   while m = men.find(&:single?) do
+    #It finds a woman in the preference list that he has not proposed to yet, and proposes
     w = m.preference_list.find { |w| not m.proposals.include?(w) }
     m.propose(w)
   end
 end
-puts File.dirname(__FILE__)
-directory_files(ARGV[0])
 
-people = read_file(ARGV[0])
-puts 'Getting men'
+file = ARGV[0]
+$debug = ARGV[1] == "debug"
+file_name = file[0..file.index('.') - 1]
+
+puts file_name 
+people = parse_data(file_name + ".in")
+
+#Retrieves men
 men = people.select{ |p| p.number.odd? }
-puts 'Getting women'
+#Retrieves women
 women = people.select{ |p| p.number.even? }
 
 
 # men.each(&:display)
 # women.each(&:display)
-'Matching'
+#Matches
 match_couples(men, women)
 
-men.each do |m|
-  puts "#{m.name} -- #{m.engaged_to}"
-end
+#Maps the resulting string for verification
+result_string = men.map do |m|
+  "#{m.name} -- #{m.engaged_to}\n"
+end.join('')
+
+#Loads file
+out = read_file(file_name + ".out").join('')
+# puts "#{out}"
+puts "#{result_string}"
+passed = (result_string == out) ? "Passed" : "Failed"
+puts "Test #{passed} "

@@ -16,7 +16,7 @@ class Person
   end
 
   def display
-    puts "#{number} - #{name} - #{preference_list}"
+    puts "#{number} - #{name} - #{preference_list}" 
   end
 
   def single?
@@ -37,21 +37,21 @@ class Person
   end
 
   def propose(person)
-    puts "#{self} proposes to #{person}"
+    puts "#{self} proposes to #{person}" if $debug
     @proposals << person
     person.proposal_response(self)
   end
 
   def proposal_response(person)
     if single?
-      puts "#{self} is engaged with #{person}"
+      puts "#{self} is engaged with #{person}" if $debug
       engage(person)
     elsif upgrade?(person)
-      puts "#{self} upgrades from #{engaged_to} to #{person}"
+      puts "#{self} upgrades from #{engaged_to} to #{person}" if $debug
       @engaged_to.break_up
       engage(person)
     else
-      puts "#{self} rejects #{person}"
+      puts "#{self} rejects #{person}" if $debug
     end
   end
 end
