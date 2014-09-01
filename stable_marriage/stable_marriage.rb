@@ -80,32 +80,41 @@ def match_couples(men, women)
   end
 end
 
-file = ARGV[0]
-$debug = ARGV[1] == "debug"
-file_name = file[0..file.index('.') - 1]
+def run(file)
+  start = Time.now
+  file_name = file[0..file.index('.') - 1]
+  people = parse_data(file_name + ".in")
+  puts "Running for #{file_name}"
+  #Retrieves men
+  men = people.select{ |p| p.number.odd? }
+  #Retrieves women
+  women = people.select{ |p| p.number.even? }
+  men.each(&:display) if $debug
+  women.each(&:display) if $debug
+  #Matches
+  match_couples(men, women)
 
-puts file_name 
-people = parse_data(file_name + ".in")
+  #Maps the resulting string for verification
+  result_string = men.map do |m|
+    "#{m.name} -- #{m.engaged_to}\n"
+  end.join('') 
 
-#Retrieves men
-men = people.select{ |p| p.number.odd? }
-#Retrieves women
-women = people.select{ |p| p.number.even? }
+  #Loads file
+  out = read_file(file_name + ".out").join('')
+  # puts "#{out}"
+  puts "#{result_string}" if $debug
+  passed = (result_string == out) ? "Passed" : "Failed"
+  duration = Time.now - start
+  puts "Test #{passed} for #{file_name} and took #{duration} seconds "
+end
 
 
-# men.each(&:display)
-# women.each(&:display)
-#Matches
-match_couples(men, women)
+$debug = ARGV[0] == "debug"
 
-#Maps the resulting string for verification
-result_string = men.map do |m|
-  "#{m.name} -- #{m.engaged_to}\n"
-end.join('')
+files = Dir.entries(File.dirname(__FILE__)).select do |f|
+  f.include?(".in")
+end
 
-#Loads file
-out = read_file(file_name + ".out").join('')
-# puts "#{out}"
-puts "#{result_string}"
-passed = (result_string == out) ? "Passed" : "Failed"
-puts "Test #{passed} "
+files.each do |f|
+  run(f)
+end
