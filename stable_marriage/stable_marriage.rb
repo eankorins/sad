@@ -108,7 +108,6 @@ def run(file)
   puts "Test #{passed} for #{file_name} and took #{duration} seconds "
 end
 
-
 $debug = ARGV[0] == "debug"
 
 files = Dir.entries(File.dirname(__FILE__)).select do |f|
