@@ -28,7 +28,7 @@ end
 def tests(file='Toy_FASTAs.out')
 	file = open(file).readlines.join('')
 	puts "#{file}"
-	matches = file.scan(/(\w*-?\w*)--(\w*-?\w*): [+|-]?(\d*)\n(\w*)\n(.*)/)
+	matches = file.scan(/(\w*-?\w*)--(\w*-?\w*): ([+|-]?\d*)\n(\w|.*)\n(.*)/)
 	matches.map do |a,b,c,d,e|
 		Test.new(a,b,c,d,e)
 	end
@@ -58,10 +58,11 @@ def run_tests(name)
 		needlewunsch = NeedleWunsch.new(a, b, sub_matrix, - 8)
 		a_seq, b_seq, score = needlewunsch.best_alignment
 
-		puts "#{a_seq == test.a_seq} #{b_seq == test.b_seq} #{score - test.score.to_i}"
+		puts "Testing: #{test.a} - #{test.b}"
+		puts "#{a_seq}\n#{test.a_seq}\n#{b_seq}\n#{test.b_seq} #{score} - #{test.score.to_i}"
 	end
 	
 end
 
-run_tests('Toy_FASTAs')
+run_tests('HbB_FASTAs')
 
