@@ -1,5 +1,6 @@
 require 'open-uri'
-require_relative 'flow_network'
+require 'graph'
+require_relative 'flow'
 
 
 def run_file(file)
@@ -10,26 +11,25 @@ def run_file(file)
 	edgesLength = lines.slice!(0).to_i
 
 	puts "Vertices #{nodes.count} Edges #{edgesLength}"
-	edges = lines.slice!(0, edgesLength).map do |edge|
+	edges = lines.slice!(0, edgesLength + 1).map do |edge|
 		a, b, capacity =  edge.split(' ').map!(&:to_i)
 		capacity = 1000000 if capacity == -1
-		[nodes[a], nodes[b], capacity]
+		[a, b, capacity]
 	end
 	network = FlowNetwork.new
 	nodes.each do |v|
 		network.add_vertex(v)
 	end
-
 	edges.each do |a,b,c|
 		network.add_edge(a,b,c)
 	end
-	puts network.max_flow('ORIGINS', 'DESTINATIONS')
+	puts network.max_flow(0, 54)
 end
 
-g = FlowNetwork.new()
-"sopqrt".split('').each do |v|
-  g.add_vertex(v)
-end
+# g = FlowNetwork.new()
+# "sopqrt".split('').each do |v|
+#   g.add_vertex(v)
+# end
 # g.add_edge('s','o',3)
 # g.add_edge('s','p',3)
 # g.add_edge('o','p',2)

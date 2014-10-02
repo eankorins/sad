@@ -1,0 +1,11 @@
+Vertices 55 Edges 119
+b -> H Capacity 5
+b -> H Capacity 19
+b -> S Capacity 10
+7 -> S Capacity 6
+7 -> 8 Capacity 24
+4 -> 8 Capacity 16
+4 -> 5 Capacity 36
+4 -> 2 Capacity 17
+1 -> 2 Capacity 30
+163
